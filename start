@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if ! [ -S "pulseaudio.socket" ]; then
+    pactl load-module module-native-protocol-unix socket="$(pwd)/pulseaudio.socket"
+fi
+
+docker build -t steam --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) .
+
+docker run --name steam \
+    -v "$(pwd)/pulseaudio.socket:/tmp/pulseaudio.socket:rw" \
+    --user $(id -u):$(id -g) \
+    -e DISPLAY=$DISPLAY \
+    -e XAUTHORITY=/home/steam/.Xauthority \
+    -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+    -v $XAUTHORITY:/home/steam/.Xauthority \
+    --shm-size=3G \
+    --privileged \
+    -v $(pwd)/steam:/home/steam/.local/share/Steam \
+    steam
