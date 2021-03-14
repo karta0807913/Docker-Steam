@@ -1,5 +1,7 @@
 #!/bin/bash
 
-dbus-daemon --session &
+/etc/init.d/dbus start
+sudo -u steam dbus-daemon --session &
+export $(dbus-launch)
 
-"$@"
+sudo -u steam "$@"

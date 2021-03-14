@@ -1,19 +1,26 @@
 #!/bin/bash
 
-if ! [ -S "pulseaudio.socket" ]; then
-    pactl load-module module-native-protocol-unix socket="$(pwd)/pulseaudio.socket"
+PULSEAUDIO_SOCKET_PATH="${XDG_RUNTIME_DIR}/steam-pulseaudio.socket"
+
+if ! [ -S "${PULSEAUDIO_SOCKET_PATH}" ]; then
+    rm -rf "${PULSEAUDIO_SOCKET_PATH}"
+    pactl load-module module-native-protocol-unix socket="${PULSEAUDIO_SOCKET_PATH}"
 fi
 
-docker build -t steam --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) .
+if docker container inspect steam > /dev/null 2>&1; then
+    docker start steam;
+else
+    docker build -t steam --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) "$(dirname "$0")"
 
-docker run --name steam \
-    -v "$(pwd)/pulseaudio.socket:/tmp/pulseaudio.socket:rw" \
-    --user $(id -u):$(id -g) \
-    -e DISPLAY=$DISPLAY \
-    -e XAUTHORITY=/home/steam/.Xauthority \
-    -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-    -v $XAUTHORITY:/home/steam/.Xauthority \
-    --shm-size=3G \
-    --privileged \
-    -v $(pwd)/steam:/home/steam/.local/share/Steam \
-    steam
+    docker run --name steam \
+        -v "${PULSEAUDIO_SOCKET_PATH}:/tmp/pulseaudio.socket:rw" \
+        -e DISPLAY=$DISPLAY \
+        -e XAUTHORITY=/home/steam/.Xauthority \
+        -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+        -v $XAUTHORITY:/home/steam/.Xauthority \
+        --shm-size=3G \
+        --privileged \
+        -v $(pwd)/steam:/home/steam/.local/share/Steam \
+        steam
+fi
+

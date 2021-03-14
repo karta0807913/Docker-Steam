@@ -43,7 +43,7 @@ ENV PULSE_COOKIE=/tmp/pulseaudio.cookie
 ENV LANG=en_US.UTF-8
 
 COPY client.conf /etc/pulse/client.conf
-COPY init /home/steam/init
+COPY init /root/init
 
 ARG USER_UID=1000
 ARG USER_GID=1000
@@ -57,7 +57,5 @@ RUN groupadd -r -g ${USER_GID} steam && useradd -u ${USER_UID} --no-log-init -r 
 ENV USER_UID=
 ENV USER_GID=
 
-USER steam
-
-ENTRYPOINT [ "/home/steam/init" ]
+ENTRYPOINT [ "/root/init" ]
 CMD [ "steam" ]
