@@ -4,7 +4,7 @@ A docker image for steam based on Ubuntu.
 
 ## Tested System Environment
 
-1. Ubuntu 18.04 amd64 with nvidia 1070GX.
+1. Ubuntu 18.04 amd64 with nvidia GTX-1650.
 2. Ubuntu 20.04 amd64 with intel 17-10510U
 
 ## System Resuirement
