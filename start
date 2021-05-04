@@ -20,6 +20,7 @@ else
         -v $XAUTHORITY:/home/steam/.Xauthority \
         --shm-size=3G \
         --privileged \
+        --gpus all \
         -v $(pwd)/steam:/home/steam/.local/share/Steam \
         steam
 fi
