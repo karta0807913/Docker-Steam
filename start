@@ -1,5 +1,17 @@
 #!/bin/bash
 
+if which podman; then
+    # https://github.com/NVIDIA/nvidia-container-runtime/issues/85#issuecomment-604931556
+    CONTAINERD="podman"
+elif which docker; then
+    # https://github.com/NVIDIA/nvidia-docker
+    CONTAINERD="docker"
+else
+    echo "no container manager found"
+    exit 1
+fi
+    CONTAINERD="docker"
+
 PULSEAUDIO_SOCKET_PATH="${XDG_RUNTIME_DIR}/steam-pulseaudio.socket"
 
 if ! [ -S "${PULSEAUDIO_SOCKET_PATH}" ]; then
@@ -7,21 +19,21 @@ if ! [ -S "${PULSEAUDIO_SOCKET_PATH}" ]; then
     pactl load-module module-native-protocol-unix socket="${PULSEAUDIO_SOCKET_PATH}"
 fi
 
-if docker container inspect steam > /dev/null 2>&1; then
-    docker start steam;
+if ${CONTAINERD} container inspect steam > /dev/null 2>&1; then
+    ${CONTAINERD} start steam;
 else
-    docker build -t steam --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) "$(dirname "$0")"
+    ${CONTAINERD} build -t localhost/steam --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) "$(dirname "$0")"
 
-    docker run --name steam \
+    ${CONTAINERD} run --name steam \
         -v "${PULSEAUDIO_SOCKET_PATH}:/tmp/pulseaudio.socket:rw" \
         -e DISPLAY=$DISPLAY \
         -e XAUTHORITY=/home/steam/.Xauthority \
+        -e CONTAINERD="${CONTAINERD}" \
         -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
         -v $XAUTHORITY:/home/steam/.Xauthority \
-        --shm-size=3G \
+        --shm-size=$(free -g | head -n 2 | tail -n 1 | awk '{ print $2 }')G \
         --privileged \
         --gpus all \
         -v $(pwd)/steam:/home/steam/.local/share/Steam \
-        steam
+        localhost/steam
 fi
-

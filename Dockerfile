@@ -1,5 +1,5 @@
 # FROM ubuntu:20.04
-FROM nvidia/opengl:1.1-glvnd-devel-ubuntu20.04
+FROM docker.io/nvidia/opengl:1.1-glvnd-devel-ubuntu20.04
 
 WORKDIR /home/steam/
 
@@ -44,6 +44,7 @@ ENV LANG=en_US.UTF-8
 
 COPY client.conf /etc/pulse/client.conf
 COPY init /root/init
+COPY steam-startup /usr/bin/steam
 
 ARG USER_UID=1000
 ARG USER_GID=1000

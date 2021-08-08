@@ -1,7 +1,13 @@
 #!/bin/bash
 
-/etc/init.d/dbus start
-sudo -u steam dbus-daemon --session &
 export $(dbus-launch)
 
-sudo -u steam "$@"
+mkdir -p /home/steam/.local/share/Steam
+
+if [ "${CONTAINERD}" = "docker" ]; then
+    chown -R steam:steam "/home/steam/.local/share/Steam"
+    sudo -u steam "$@"
+else
+    "$@"
+fi
+
