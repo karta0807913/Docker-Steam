@@ -4,15 +4,18 @@ if which podman; then
     # https://github.com/NVIDIA/nvidia-container-runtime/issues/85#issuecomment-604931556
     CONTAINERD="podman"
     GPU_OPTIONS="--security-opt=label=disable --hooks-dir=/usr/share/containers/oci/hooks.d/"
+    # see https://github.com/containers/podman/issues/7801
+    GPU_OPTIONS="${GPU_OPTIONS} --security-opt=unmask=ALL --volume=/dev:/dev"
+    ROOT_FOLDER="/root"
 elif which docker; then
     # https://github.com/NVIDIA/nvidia-docker
     CONTAINERD="docker"
     GPU_OPTIONS="--gpus all"
+    ROOT_FOLDER="/home/steam"
 else
     echo "no container manager found"
     exit 1
 fi
-    CONTAINERD="docker"
 
 PULSEAUDIO_SOCKET_PATH="${XDG_RUNTIME_DIR}/steam-pulseaudio.socket"
 
@@ -35,7 +38,6 @@ else
         -v $XAUTHORITY:/home/steam/.Xauthority \
         --shm-size=$(free -g | head -n 2 | tail -n 1 | awk '{ print $2 }')G \
         --privileged \
-        --gpus all \
-        -v $(pwd)/steam:/home/steam/.local/share/Steam \
+        -v $(pwd)/steam:${ROOT_FOLDER}/.local/share/Steam \
         localhost/steam
 fi
