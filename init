@@ -4,7 +4,7 @@ export $(dbus-launch)
 
 mkdir -p /home/steam/.local/share/Steam
 
-if [ "${CONTAINERD}" = "docker" ]; then
+if [ "${CHOWN}" = "1" ]; then
     chown -R steam:steam "/home/steam/.local/share/Steam"
     sudo -u steam "$@"
 else

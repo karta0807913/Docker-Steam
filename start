@@ -1,5 +1,10 @@
 #!/bin/bash
 
+EXTRA_OPTIONS=""
+if [ "${UID}" = "0" ]; then
+    EXTRA_OPTIONS="${EXTRA_OPTIONS} -e CHOWN=1"
+fi
+
 if which podman; then
     # https://github.com/NVIDIA/nvidia-container-runtime/issues/85#issuecomment-604931556
     CONTAINERD="podman"
@@ -9,18 +14,27 @@ if which podman; then
     ROOT_FOLDER="/root"
 elif which docker; then
     # https://github.com/NVIDIA/nvidia-docker
+
     CONTAINERD="docker"
     GPU_OPTIONS="--gpus all"
     ROOT_FOLDER="/home/steam"
+
+    # TODO: check is docker in rootless mode
+    EXTRA_OPTIONS="${EXTRA_OPTIONS} -e CHOWN=1"
 else
     echo "no container manager found"
     exit 1
 fi
 
-PULSEAUDIO_SOCKET_PATH="${XDG_RUNTIME_DIR}/steam-pulseaudio.socket"
+if ! which pactl > /dev/null 2>&1; then
+    echo "Please Install Pulseaudio"
+    exit 127
+fi
+PULSEAUDIO_SOCKET_PATH="${XDG_RUNTIME_DIR}/pulse/native"
 
 if ! [ -S "${PULSEAUDIO_SOCKET_PATH}" ]; then
     rm -rf "${PULSEAUDIO_SOCKET_PATH}"
+    mkdir -p "$(dirname ${PULSEAUDIO_SOCKET_PATH})"
     pactl load-module module-native-protocol-unix socket="${PULSEAUDIO_SOCKET_PATH}"
 fi
 
@@ -39,5 +53,6 @@ else
         --shm-size=$(free -g | head -n 2 | tail -n 1 | awk '{ print $2 }')G \
         --privileged \
         -v $(pwd)/steam:${ROOT_FOLDER}/.local/share/Steam \
+        ${EXTRA_OPTIONS} \
         localhost/steam
 fi

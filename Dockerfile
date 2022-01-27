@@ -33,9 +33,18 @@ RUN apt-get update && apt-get -y install software-properties-common wget pulseau
         dbus-x11 \
         libgl1-mesa-dri:i386 \
         libgl1:i386 \
+        libvulkan1 \
+        vulkan-utils \
+        vulkan-tools \
+        mesa-vulkan-drivers \
+        mesa-vulkan-drivers:i386 \
         libc6:i386 && \
     apt-get update && \
     apt-get install -y -f --install-recommends ./steam.deb && \
+    apt-get update && \
+    apt-get install -y \
+        steam-libs-amd64:amd64 \
+        steam-libs-i386:i386 && \
     rm -rf steam.deb /var/lib/apt/lists/*
 
 ENV PULSE_SERVER=unix:/tmp/pulseaudio.socket
